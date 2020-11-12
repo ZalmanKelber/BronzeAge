@@ -1,5 +1,7 @@
 package SimpleSBApps.bronzeage.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 public class Hero {
 
     private final Integer id;
@@ -7,14 +9,17 @@ public class Hero {
     private String house;
     private String city;
 
-    public Hero(Integer id, String name, String house, String city) {
+    public Hero(@JsonProperty("id") Integer id,
+                @JsonProperty("name") String name,
+                @JsonProperty("house") String house,
+                @JsonProperty("city") String city) {
         this.id = id;
         this.name = name;
         this.house = house;
         this.city = city;
     }
 
-    public Hero(Integer id, String name) {
+    public Hero(@JsonProperty("id") Integer id, @JsonProperty("name") String name) {
         this.id = id;
         this.name = name;
     }
@@ -41,5 +46,15 @@ public class Hero {
 
     public void setCity(String city) {
         this.city = city;
+    }
+
+    @Override
+    public String toString() {
+        return "Hero{" +
+                "id=" + id +
+                ", name='" + name + '\'' +
+                ", house='" + house + '\'' +
+                ", city='" + city + '\'' +
+                '}';
     }
 }
