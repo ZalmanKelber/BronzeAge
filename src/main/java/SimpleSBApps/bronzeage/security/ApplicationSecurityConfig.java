@@ -1,6 +1,7 @@
 package SimpleSBApps.bronzeage.security;
 
 import SimpleSBApps.bronzeage.auth.ApplicationUserService;
+import SimpleSBApps.bronzeage.jwt.JwtUsernamePasswordAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -11,6 +12,7 @@ import org.springframework.security.config.annotation.authentication.builders.Au
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
@@ -45,37 +47,16 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
     protected void configure(HttpSecurity http) throws Exception {
         http
                 .csrf().disable()
+                .sessionManagement()
+                    .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
+                .and()
+                .addFilter(new JwtUsernamePasswordAuthenticationFilter(authenticationManager()))
                 .authorizeRequests()
                 .antMatchers("/", "/index", "/css/*", "/js/*", "/login", "/prophecies").permitAll()
                 .antMatchers("/api/heroes/*").hasRole(ApplicationUserRole.HERO.name())
-//                .antMatchers(HttpMethod.DELETE, "/api/management/**").hasAuthority(ApplicationUserPermission.PROPHECY_WRITE.getPermission())
-//                .antMatchers(HttpMethod.POST, "/api/management/**").hasAuthority(ApplicationUserPermission.PROPHECY_WRITE.getPermission())
-//                .antMatchers(HttpMethod.PUT, "/api/management/**").hasAuthority(ApplicationUserPermission.PROPHECY_WRITE.getPermission())
-//                .antMatchers(HttpMethod.GET,"/api/management/**").hasAnyRole(ApplicationUserRole.ADMIN.name(), ApplicationUserRole.ADMIN_TRAINEE.name())
                 .anyRequest()
-                .authenticated()
-                .and()
-                .formLogin()
-                    .loginPage("/login")
-                    .defaultSuccessUrl("/prophecies", true)
-                    .passwordParameter("password")
-                    .usernameParameter("username")
-                .and()
-                .rememberMe()
-                    .tokenValiditySeconds((int) TimeUnit.DAYS.toSeconds(30))
-                    .key(remembermekey)
-                    .rememberMeParameter("remember-me")
-                .and()
-                .logout()
-                    .logoutUrl("/logout")
-                    .logoutRequestMatcher(new AntPathRequestMatcher("/logout", "GET"))
-                    .clearAuthentication(true)
-                    .invalidateHttpSession(true)
-                    .deleteCookies("JSESSIONID", "remember-me")
-                    .logoutSuccessUrl("/");
-//        http
-//                .csrf()
-//                .csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
+                .authenticated();
+
 
     }
 
