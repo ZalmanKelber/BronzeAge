@@ -1,6 +1,9 @@
 package SimpleSBApps.bronzeage.security;
 
 import SimpleSBApps.bronzeage.auth.ApplicationUserService;
+import SimpleSBApps.bronzeage.jwt.JwtConfig;
+import SimpleSBApps.bronzeage.jwt.JwtSecretKey;
+import SimpleSBApps.bronzeage.jwt.JwtTokenVerifier;
 import SimpleSBApps.bronzeage.jwt.JwtUsernamePasswordAuthenticationFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -31,15 +34,21 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
 
     private final PasswordEncoder passwordEncoder;
     private final ApplicationUserService applicationUserService;
+    private final JwtConfig jwtConfig;
+    private final JwtSecretKey jwtSecretKey;
 
     @Value("${app.remembermekey}")
     String remembermekey;
 
     @Autowired
     public ApplicationSecurityConfig(PasswordEncoder passwordEncoder,
-                                     ApplicationUserService applicationUserService) {
+                                     ApplicationUserService applicationUserService,
+                                     JwtConfig jwtConfig,
+                                     JwtSecretKey jwtSecretKey) {
         this.passwordEncoder = passwordEncoder;
         this.applicationUserService = applicationUserService;
+        this.jwtConfig = jwtConfig;
+        this.jwtSecretKey = jwtSecretKey;
     }
 
 
@@ -50,7 +59,10 @@ public class ApplicationSecurityConfig extends WebSecurityConfigurerAdapter {
                 .sessionManagement()
                     .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
-                .addFilter(new JwtUsernamePasswordAuthenticationFilter(authenticationManager()))
+                .addFilter(new JwtUsernamePasswordAuthenticationFilter(authenticationManager(),
+                       jwtConfig, jwtSecretKey))
+                .addFilterAfter(new JwtTokenVerifier(jwtConfig, jwtSecretKey),
+                        JwtUsernamePasswordAuthenticationFilter.class)
                 .authorizeRequests()
                 .antMatchers("/", "/index", "/css/*", "/js/*", "/login", "/prophecies").permitAll()
                 .antMatchers("/api/heroes/*").hasRole(ApplicationUserRole.HERO.name())
